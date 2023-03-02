@@ -7,10 +7,53 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ttr", "ttr\ttr.vcxproj", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6BF69B2F-C1F2-4839-9FDC-7B41D1691901}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		.gitattributes = .gitattributes
 		.gitignore = .gitignore
 		LICENSE = LICENSE
 		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ForceRumbleback", "ForceRumbleback\ForceRumbleback.vcxproj", "{1F8B3A53-8E36-4245-BED0-3A8CF1CEFD73}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scs_sdk", "scs_sdk", "{96FFC727-180D-401E-AB5D-63B75FDC1036}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "v1.14", "v1.14", "{648D5E2F-9D3D-4B49-9AE5-E09D83B70F2E}"
+	ProjectSection(SolutionItems) = preProject
+		scs_sdk\v1.14\readme.txt = scs_sdk\v1.14\readme.txt
+		scs_sdk\v1.14\scssdk.h = scs_sdk\v1.14\scssdk.h
+		scs_sdk\v1.14\scssdk_input.h = scs_sdk\v1.14\scssdk_input.h
+		scs_sdk\v1.14\scssdk_input_device.h = scs_sdk\v1.14\scssdk_input_device.h
+		scs_sdk\v1.14\scssdk_input_event.h = scs_sdk\v1.14\scssdk_input_event.h
+		scs_sdk\v1.14\scssdk_telemetry.h = scs_sdk\v1.14\scssdk_telemetry.h
+		scs_sdk\v1.14\scssdk_telemetry_channel.h = scs_sdk\v1.14\scssdk_telemetry_channel.h
+		scs_sdk\v1.14\scssdk_telemetry_event.h = scs_sdk\v1.14\scssdk_telemetry_event.h
+		scs_sdk\v1.14\scssdk_value.h = scs_sdk\v1.14\scssdk_value.h
+		scs_sdk\v1.14\sdk_license.txt = scs_sdk\v1.14\sdk_license.txt
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "amtrucks", "amtrucks", "{1798AA96-2E5E-4FA4-B172-CDF16C9D296F}"
+	ProjectSection(SolutionItems) = preProject
+		scs_sdk\v1.14\amtrucks\scssdk_ats.h = scs_sdk\v1.14\amtrucks\scssdk_ats.h
+		scs_sdk\v1.14\amtrucks\scssdk_input_ats.h = scs_sdk\v1.14\amtrucks\scssdk_input_ats.h
+		scs_sdk\v1.14\amtrucks\scssdk_telemetry_ats.h = scs_sdk\v1.14\amtrucks\scssdk_telemetry_ats.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "common", "common", "{E2E91F25-E4F7-4AF2-A135-337D856078C4}"
+	ProjectSection(SolutionItems) = preProject
+		scs_sdk\v1.14\common\scssdk_telemetry_common_channels.h = scs_sdk\v1.14\common\scssdk_telemetry_common_channels.h
+		scs_sdk\v1.14\common\scssdk_telemetry_common_configs.h = scs_sdk\v1.14\common\scssdk_telemetry_common_configs.h
+		scs_sdk\v1.14\common\scssdk_telemetry_common_gameplay_events.h = scs_sdk\v1.14\common\scssdk_telemetry_common_gameplay_events.h
+		scs_sdk\v1.14\common\scssdk_telemetry_job_common_channels.h = scs_sdk\v1.14\common\scssdk_telemetry_job_common_channels.h
+		scs_sdk\v1.14\common\scssdk_telemetry_trailer_common_channels.h = scs_sdk\v1.14\common\scssdk_telemetry_trailer_common_channels.h
+		scs_sdk\v1.14\common\scssdk_telemetry_truck_common_channels.h = scs_sdk\v1.14\common\scssdk_telemetry_truck_common_channels.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "eurotrucks2", "eurotrucks2", "{6BCF72CB-C98D-408D-BECF-5800061FD6EF}"
+	ProjectSection(SolutionItems) = preProject
+		scs_sdk\v1.14\eurotrucks2\scssdk_eut2.h = scs_sdk\v1.14\eurotrucks2\scssdk_eut2.h
+		scs_sdk\v1.14\eurotrucks2\scssdk_input_eut2.h = scs_sdk\v1.14\eurotrucks2\scssdk_input_eut2.h
+		scs_sdk\v1.14\eurotrucks2\scssdk_telemetry_eut2.h = scs_sdk\v1.14\eurotrucks2\scssdk_telemetry_eut2.h
 	EndProjectSection
 EndProject
 Global
@@ -29,9 +72,24 @@ Global
 		{B116B8CA-9A30-419B-9A00-9F6F8EF48243}.Release|x64.Build.0 = Release|x64
 		{B116B8CA-9A30-419B-9A00-9F6F8EF48243}.Release|x86.ActiveCfg = Release|Win32
 		{B116B8CA-9A30-419B-9A00-9F6F8EF48243}.Release|x86.Build.0 = Release|Win32
+		{1F8B3A53-8E36-4245-BED0-3A8CF1CEFD73}.Debug|x64.ActiveCfg = Debug|x64
+		{1F8B3A53-8E36-4245-BED0-3A8CF1CEFD73}.Debug|x64.Build.0 = Debug|x64
+		{1F8B3A53-8E36-4245-BED0-3A8CF1CEFD73}.Debug|x86.ActiveCfg = Debug|Win32
+		{1F8B3A53-8E36-4245-BED0-3A8CF1CEFD73}.Debug|x86.Build.0 = Debug|Win32
+		{1F8B3A53-8E36-4245-BED0-3A8CF1CEFD73}.Release|x64.ActiveCfg = Release|x64
+		{1F8B3A53-8E36-4245-BED0-3A8CF1CEFD73}.Release|x64.Build.0 = Release|x64
+		{1F8B3A53-8E36-4245-BED0-3A8CF1CEFD73}.Release|x86.ActiveCfg = Release|Win32
+		{1F8B3A53-8E36-4245-BED0-3A8CF1CEFD73}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{96FFC727-180D-401E-AB5D-63B75FDC1036} = {6BF69B2F-C1F2-4839-9FDC-7B41D1691901}
+		{648D5E2F-9D3D-4B49-9AE5-E09D83B70F2E} = {96FFC727-180D-401E-AB5D-63B75FDC1036}
+		{1798AA96-2E5E-4FA4-B172-CDF16C9D296F} = {648D5E2F-9D3D-4B49-9AE5-E09D83B70F2E}
+		{E2E91F25-E4F7-4AF2-A135-337D856078C4} = {648D5E2F-9D3D-4B49-9AE5-E09D83B70F2E}
+		{6BCF72CB-C98D-408D-BECF-5800061FD6EF} = {648D5E2F-9D3D-4B49-9AE5-E09D83B70F2E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8929F9F7-A13F-4DE2-8151-D9E87F1CBEBA}
