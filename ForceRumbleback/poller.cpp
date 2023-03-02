@@ -13,42 +13,56 @@
 
 bool concurrent_thread_running = false;
 bool polling = false;
+std::mutex threadlock;
+
+void Poll();
 
 HRESULT StartPolling() {
     polling = true;
     log("Polling for truck state changes...");
+    new std::thread(Poll);
     concurrent_thread_running = true;
     return S_OK;
 }
 
 HRESULT StopPolling() {
     polling = false;
+    threadlock.lock();
     log("Stopped polling for truck state changes.");
     // don't just set it to false, wait the thread to exit!
     concurrent_thread_running = false;
+    threadlock.unlock();
     return S_OK;
 }
 
 void Poll() {
+    threadlock.lock();
     truck_info_t last, current;
     memset(&last, 0, sizeof(current));
 
+    log("Thread started polling.");
     while (polling) {
-        LOCK
+        LOCK;
         if (truck_data.paused) {
-            UNLOCK
+            UNLOCK;
             if (!last.paused) {
+                log("Paused. Interrupting all rumble effects.");
                 // stop all effects, but be ready to resume where they were once it is unpaused.
+                last.paused = true;
             }
-            WAITNEXT
+            WAITNEXT;
         } else if (last.paused) {
-            UNLOCK
+            UNLOCK;
+            log("Unpaused. Resuming all rumble effects.");
             // resume effects the way they were before pausing
-            WAITNEXT
+            last.paused = false;
+            WAITNEXT;
         }
         current = truck_data;
-        UNLOCK
+        UNLOCK;
 
-        WAITPOLL
+        WAITPOLL;
     }
+    log("Thread stopped polling.");
+    threadlock.unlock();
 }
