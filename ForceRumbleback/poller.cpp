@@ -70,7 +70,9 @@ void Poll() {
     bool need_update = false;
     bool need_engine_toggle = false;
     long currforce = 0, newforce;
-    sendforce(currforce);
+    bool di8failure = false;
+#define SendForceCHK(x) di8failure = SendForce(x) != DI_OK
+    SendForceCHK(currforce);
     log("Thread started polling.");
     while (polling) {
         LOCK;
@@ -79,7 +81,7 @@ void Poll() {
             if (!last.paused) {
                 log("Paused. Interrupting all rumble effects.");
                 // stop all effects, but be ready to resume where they were once it is unpaused.
-                sendforce(0);
+                SendForceCHK(0);
                 last.paused = true;
             }
             WAITNEXT;
@@ -89,7 +91,7 @@ void Poll() {
 
             last = truck_data;
             UNLOCK;
-            sendforce(currforce);
+            SendForceCHK(currforce);
             WAITNEXT;
         }
 
@@ -115,12 +117,18 @@ void Poll() {
             // device will actually be able to reflect.
             if (newforce < (currforce - FORCEGRANULARITY) || newforce >(currforce + FORCEGRANULARITY)) {
                 currforce = newforce;
-                sendforce(currforce);
+                SendForceCHK(currforce);
             }
+        } else if (di8failure) {
+            // always send current force if trying to recover from a failed SendForce() attempt.
+            SendForceCHK(revToForce(last));
         }
+
+        // Add a much longer delay in case the command failed to avoid flooding the bus
+        if (di8failure) Sleep(1000);
         WAITPOLL;
     }
-    sendforce(0);
+    SendForceCHK(0);
     log("Thread stopped polling.");
     threadlock.unlock();
 }

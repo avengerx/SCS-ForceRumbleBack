@@ -8,8 +8,8 @@
 
 HRESULT ShutdownDirectInput();
 
-void sendforce(long value);
-void sendforceWait(long, DWORD);
+HRESULT SendForce(long value);
+HRESULT SendForceWait(long, DWORD);
 void start_engine();
 void stop_engine();
 void accel();

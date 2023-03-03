@@ -99,14 +99,16 @@ HRESULT ShutdownDirectInput() {
     return DI_OK;
 }
 
-void sendforce(long value) {
+HRESULT SendForce(long value) {
+    HRESULT retstat;
     if (DIDev == nullptr) {
         log("Initializing DirectInput on demand.");
-        if (initDirectInput() == DI_OK)
+        retstat = initDirectInput();
+        if (retstat == DI_OK)
             log("Initialized DirectInput on demand.");
         else {
             log("Attempt to apply force of %l while device could not be initialized.");
-            return;
+            return retstat;
         }
     }
 
@@ -130,7 +132,7 @@ void sendforce(long value) {
     ffx.lpvTypeSpecificParams = &fx;
     ffx.dwStartDelay = 0;
 
-    HRESULT retstat = DIDev->CreateEffect(GUID_ConstantForce, &ffx, &DIFX, nullptr);
+    retstat = DIDev->CreateEffect(GUID_ConstantForce, &ffx, &DIFX, nullptr);
     if (DI_OK != retstat) {
 #define ERRPFX "Error: unable to create effect on device: "
 #define ERRSUF " [0x%04lx].\n", retstat
@@ -152,46 +154,51 @@ void sendforce(long value) {
             log(ERRPFX "unknown error" ERRSUF);
         }
     }
+
+    return retstat;
 }
 
-void sendforceWait(long force, DWORD ms) {
-    sendforce(force);
-    Sleep(ms);
+HRESULT SendForceWait(long force, DWORD ms) {
+    HRESULT retstat = SendForce(force);
+
+    if (retstat == DI_OK) Sleep(ms);
+
+    return retstat;
 }
 
 long EngineIdlespeed = 900;
 long EngineCruisespeed = 9400;
 
 void start_engine() {
-    sendforceWait(500, 350);
-    sendforceWait(2500, 150);
-    sendforceWait(2500, 150);
-    sendforceWait(4500, 150);
-    sendforceWait(6500, 150);
-    sendforceWait(10000, 200);
-    sendforceWait(8500, 100);
-    sendforceWait(6500, 100);
-    sendforceWait(2500, 200);
-    sendforceWait(EngineIdlespeed, 500);
+    SendForceWait(500, 350);
+    SendForceWait(2500, 150);
+    SendForceWait(2500, 150);
+    SendForceWait(4500, 150);
+    SendForceWait(6500, 150);
+    SendForceWait(10000, 200);
+    SendForceWait(8500, 100);
+    SendForceWait(6500, 100);
+    SendForceWait(2500, 200);
+    SendForceWait(EngineIdlespeed, 500);
 }
 
 void stop_engine() {
-    sendforceWait(2500, 100);
-    sendforceWait(6500, 100);
-    sendforceWait(10000, 200);
-    sendforceWait(8500, 100);
-    sendforceWait(6500, 100);
-    sendforceWait(2500, 200);
-    sendforceWait(850, 600);
-    sendforceWait(500, 300);
-    sendforceWait(0, 100);
+    SendForceWait(2500, 100);
+    SendForceWait(6500, 100);
+    SendForceWait(10000, 200);
+    SendForceWait(8500, 100);
+    SendForceWait(6500, 100);
+    SendForceWait(2500, 200);
+    SendForceWait(850, 600);
+    SendForceWait(500, 300);
+    SendForceWait(0, 100);
 }
 
 void accel() {
     long force = 0;
     while (force < 10000) {
         force += 800;
-        sendforceWait(force, 150);
+        SendForceWait(force, 150);
     }
 }
 
@@ -200,7 +207,7 @@ void deccel() {
     while (force > EngineIdlespeed) {
         force -= 800;
         if (force < EngineIdlespeed) force = EngineIdlespeed;
-        sendforceWait(force, 150);
+        SendForceWait(force, 150);
     }
 }
 
@@ -209,7 +216,7 @@ void cruiserpm() {
     while (force < EngineCruisespeed) {
         force += 800;
         if (force > EngineCruisespeed) force = EngineCruisespeed;
-        sendforceWait(force, 50);
+        SendForceWait(force, 50);
     }
 }
 
@@ -218,7 +225,7 @@ void back_to_idle() {
     while (force > EngineIdlespeed) {
         force -= 800;
         if (force < EngineIdlespeed) force = EngineIdlespeed;
-        sendforceWait(force, 50);
+        SendForceWait(force, 50);
     }
 }
 
