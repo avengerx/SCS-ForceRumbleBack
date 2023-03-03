@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "log.h"
 #include "poller.h"
+#include "rumble.h"
 #include "truck.h"
 
 #define LOCK truck_data_access.lock();
@@ -10,6 +11,8 @@
 
 #define WAITPOLL Sleep(POLL_INTERVAL);
 #define WAITNEXT WAITPOLL continue;
+
+#define FORCEGRANULARITY DI_FFNOMINALMAX / 254.0
 
 bool concurrent_thread_running = false;
 bool polling = false;
@@ -35,11 +38,39 @@ HRESULT StopPolling() {
     return S_OK;
 }
 
+long revToForce(float maxrev, float currev) {
+    // maxrev - FFNOMINALMAX
+    // currev - x   => x = currev * FFNOM / maxrev
+    return (long)((currev * DI_FFNOMINALMAX) / maxrev);
+}
+
+long revToForce(truck_info_t state) {
+    float rpmratio, idleratio;
+    if (state.rpm <= FORCEGRANULARITY) {
+        return 0;
+    }
+
+    rpmratio = state.rpm / state.rpm_max;
+    idleratio = 650 / state.rpm_max; // this could be saved in truck data and updated on change
+
+    if (rpmratio <= idleratio) {
+        // ramp from 2500 to 900
+        return (long)((-5517.24138 * rpmratio) + 2555.172413793);
+    } else {
+        // ramp from 900 to 10k
+        return (long)((13000 * rpmratio) - 3000);
+    }
+}
+
 void Poll() {
     threadlock.lock();
     truck_info_t last, current;
     memset(&last, 0, sizeof(current));
 
+    bool need_update = false;
+    bool need_engine_toggle = false;
+    long currforce = 0, newforce;
+    sendforce(currforce);
     log("Thread started polling.");
     while (polling) {
         LOCK;
@@ -48,21 +79,48 @@ void Poll() {
             if (!last.paused) {
                 log("Paused. Interrupting all rumble effects.");
                 // stop all effects, but be ready to resume where they were once it is unpaused.
+                sendforce(0);
                 last.paused = true;
             }
             WAITNEXT;
         } else if (last.paused) {
-            UNLOCK;
             log("Unpaused. Resuming all rumble effects.");
             // resume effects the way they were before pausing
-            last.paused = false;
+
+            last = truck_data;
+            UNLOCK;
+            sendforce(currforce);
             WAITNEXT;
+        }
+
+        if (truck_data.revving != last.revving) {
+            need_engine_toggle = true;
+            last = truck_data;
+        } else if (truck_data.rpm != last.rpm || truck_data.rpm_max != last.rpm_max) {
+            last = truck_data;
+            need_update = true;
         }
         current = truck_data;
         UNLOCK;
 
+        if (need_engine_toggle) {
+            last.revving ? start_engine() : stop_engine();
+            need_engine_toggle = false;
+        } else if (need_update) {
+            need_update = false;
+
+            newforce = revToForce(last);
+
+            // Only send the effect update if it grew something the
+            // device will actually be able to reflect.
+            if (newforce < (currforce - FORCEGRANULARITY) || newforce >(currforce + FORCEGRANULARITY)) {
+                currforce = newforce;
+                sendforce(currforce);
+            }
+        }
         WAITPOLL;
     }
+    sendforce(0);
     log("Thread stopped polling.");
     threadlock.unlock();
 }

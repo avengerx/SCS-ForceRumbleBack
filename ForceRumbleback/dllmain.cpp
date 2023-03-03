@@ -6,6 +6,7 @@
 #include "log.h"
 #include "poller.h"
 #include "scsutil.h"
+#include "rumble.h"
 #include "truck.h"
 
 #define UNUSED(x)
@@ -240,6 +241,7 @@ SCSAPI_VOID scs_telemetry_shutdown() {
     game_log = nullptr;
 
     StopPolling();
+    ShutdownDirectInput();
 }
 
 BOOL APIENTRY DllMain( HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {
