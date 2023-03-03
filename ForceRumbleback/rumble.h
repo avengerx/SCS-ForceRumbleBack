@@ -6,15 +6,11 @@
 #define DIRECTINPUT_VERSION 0x0800
 #include "dinput.h"
 
+#define FORCEGRANULARITY DI_FFNOMINALMAX / 254.0
+
 HRESULT ShutdownDirectInput();
 
 HRESULT SendForce(long value);
 HRESULT SendForceWait(long, DWORD);
-void start_engine();
-void stop_engine();
-void accel();
-void deccel();
-void cruiserpm();
-void back_to_idle();
 
 #endif

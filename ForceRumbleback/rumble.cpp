@@ -166,69 +166,6 @@ HRESULT SendForceWait(long force, DWORD ms) {
     return retstat;
 }
 
-long EngineIdlespeed = 900;
-long EngineCruisespeed = 9400;
-
-void start_engine() {
-    SendForceWait(500, 350);
-    SendForceWait(2500, 150);
-    SendForceWait(2500, 150);
-    SendForceWait(4500, 150);
-    SendForceWait(6500, 150);
-    SendForceWait(10000, 200);
-    SendForceWait(8500, 100);
-    SendForceWait(6500, 100);
-    SendForceWait(2500, 200);
-    SendForceWait(EngineIdlespeed, 500);
-}
-
-void stop_engine() {
-    SendForceWait(2500, 100);
-    SendForceWait(6500, 100);
-    SendForceWait(10000, 200);
-    SendForceWait(8500, 100);
-    SendForceWait(6500, 100);
-    SendForceWait(2500, 200);
-    SendForceWait(850, 600);
-    SendForceWait(500, 300);
-    SendForceWait(0, 100);
-}
-
-void accel() {
-    long force = 0;
-    while (force < 10000) {
-        force += 800;
-        SendForceWait(force, 150);
-    }
-}
-
-void deccel() {
-    long force = 10000;
-    while (force > EngineIdlespeed) {
-        force -= 800;
-        if (force < EngineIdlespeed) force = EngineIdlespeed;
-        SendForceWait(force, 150);
-    }
-}
-
-void cruiserpm() {
-    long force = EngineIdlespeed;
-    while (force < EngineCruisespeed) {
-        force += 800;
-        if (force > EngineCruisespeed) force = EngineCruisespeed;
-        SendForceWait(force, 50);
-    }
-}
-
-void back_to_idle() {
-    long force = EngineCruisespeed;
-    while (force > EngineIdlespeed) {
-        force -= 800;
-        if (force < EngineIdlespeed) force = EngineIdlespeed;
-        SendForceWait(force, 50);
-    }
-}
-
 BOOL CALLBACK EnumAxes(const DIDEVICEOBJECTINSTANCE* pOInst, VOID* pContext) noexcept
 {
     if (pContext == nullptr) {

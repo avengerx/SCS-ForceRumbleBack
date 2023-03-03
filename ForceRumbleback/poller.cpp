@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "log.h"
 #include "poller.h"
+#include "fx.h"
 #include "rumble.h"
 #include "truck.h"
 
@@ -11,8 +12,6 @@
 
 #define WAITPOLL Sleep(POLL_INTERVAL);
 #define WAITNEXT WAITPOLL continue;
-
-#define FORCEGRANULARITY DI_FFNOMINALMAX / 254.0
 
 bool concurrent_thread_running = false;
 bool polling = false;
@@ -36,30 +35,6 @@ HRESULT StopPolling() {
     concurrent_thread_running = false;
     threadlock.unlock();
     return S_OK;
-}
-
-long revToForce(float maxrev, float currev) {
-    // maxrev - FFNOMINALMAX
-    // currev - x   => x = currev * FFNOM / maxrev
-    return (long)((currev * DI_FFNOMINALMAX) / maxrev);
-}
-
-long revToForce(truck_info_t state) {
-    float rpmratio, idleratio;
-    if (state.rpm <= FORCEGRANULARITY) {
-        return 0;
-    }
-
-    rpmratio = state.rpm / state.rpm_max;
-    idleratio = 650 / state.rpm_max; // this could be saved in truck data and updated on change
-
-    if (rpmratio <= idleratio) {
-        // ramp from 2500 to 900
-        return (long)((-5517.24138 * rpmratio) + 2555.172413793);
-    } else {
-        // ramp from 900 to 10k
-        return (long)((13000 * rpmratio) - 3000);
-    }
 }
 
 void Poll() {
@@ -106,12 +81,12 @@ void Poll() {
         UNLOCK;
 
         if (need_engine_toggle) {
-            last.revving ? start_engine() : stop_engine();
+            last.revving ? fx::StartEngine() : fx::StopEngine();
             need_engine_toggle = false;
         } else if (need_update) {
             need_update = false;
 
-            newforce = revToForce(last);
+            newforce = fx::RevToForce(last);
 
             // Only send the effect update if it grew something the
             // device will actually be able to reflect.
@@ -121,7 +96,7 @@ void Poll() {
             }
         } else if (di8failure) {
             // always send current force if trying to recover from a failed SendForce() attempt.
-            SendForceCHK(revToForce(last));
+            SendForceCHK(fx::RevToForce(last));
         }
 
         // Add a much longer delay in case the command failed to avoid flooding the bus

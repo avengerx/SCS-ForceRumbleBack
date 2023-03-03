@@ -36,6 +36,9 @@
     <ClInclude Include="rumble.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="fx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -57,6 +60,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="rumble.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
