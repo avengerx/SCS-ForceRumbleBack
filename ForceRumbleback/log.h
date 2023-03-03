@@ -4,5 +4,6 @@
 
 extern std::mutex logfile_access;
 void log(const char* const message, ...);
+void log(const wchar_t* const message, ...);
 
 #endif
