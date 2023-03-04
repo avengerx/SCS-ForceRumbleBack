@@ -2,6 +2,12 @@
 #include "fx.h"
 
 namespace fx {
+#define EngineIdleSpeed 650
+#define EngineIdleForce 900
+
+#define EngineCruiseSpeed 1400
+#define EngineCruiseForce 9400
+
     long RevToForce(float maxrev, float currev) {
         // maxrev - FFNOMINALMAX
         // currev - x   => x = currev * FFNOM / maxrev
@@ -15,7 +21,7 @@ namespace fx {
         }
 
         rpmratio = state.rpm / state.rpm_max;
-        idleratio = 650 / state.rpm_max; // this could be saved in truck data and updated on change
+        idleratio = EngineIdleSpeed / state.rpm_max; // this could be saved in truck data and updated on change
 
         if (rpmratio <= idleratio) {
             // ramp from 2500 to 900
@@ -26,31 +32,26 @@ namespace fx {
         }
     }
 
-    long EngineIdlespeed = 900;
-    long EngineCruisespeed = 9400;
-
     void StartEngine() {
-        SendForceWait(500, 350);
-        SendForceWait(2500, 150);
-        SendForceWait(2500, 150);
-        SendForceWait(4500, 150);
-        SendForceWait(6500, 150);
+        SendForceWait(5500, 50);
+        SendForceWait(8500, 50);
         SendForceWait(10000, 200);
-        SendForceWait(8500, 100);
-        SendForceWait(6500, 100);
+        SendForceWait(10000, 200);
+        SendForceWait(4500, 100);
         SendForceWait(2500, 200);
-        SendForceWait(EngineIdlespeed, 500);
+        SendForce(EngineIdleForce);
     }
 
     void StopEngine() {
         SendForceWait(2500, 100);
         SendForceWait(6500, 100);
-        SendForceWait(10000, 200);
-        SendForceWait(8500, 100);
-        SendForceWait(6500, 100);
-        SendForceWait(2500, 200);
+        SendForceWait(10000, 300);
+        SendForceWait(8500, 300);
+        SendForceWait(6500, 300);
+        SendForceWait(2500, 300);
+        SendForceWait(950, 600);
         SendForceWait(850, 600);
-        SendForceWait(500, 300);
-        SendForceWait(0, 100);
+        SendForceWait(400, 100);
+        SendForce(0);
     }
 }

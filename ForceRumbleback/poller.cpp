@@ -43,7 +43,8 @@ void Poll() {
     memset(&last, 0, sizeof(current));
 
     bool need_update = false;
-    bool need_engine_toggle = false;
+    bool fire_up_engine = false;
+    bool kill_engine = false;
     long currforce = 0, newforce;
     bool di8failure = false;
 #define SendForceCHK(x) di8failure = SendForce(x) != DI_OK
@@ -70,19 +71,30 @@ void Poll() {
             WAITNEXT;
         }
 
-        if (truck_data.revving != last.revving) {
-            need_engine_toggle = true;
+        if (!truck_data.revving && last.revving) {
+            // The engine "turn on" effect comes too late,
+            // so we only capture here when it's turning off
+            kill_engine = true;
             last = truck_data;
-        } else if (truck_data.rpm != last.rpm || truck_data.rpm_max != last.rpm_max) {
+        } else if (truck_data.rpm != last.rpm) {
+            // For engine about to turn on, we get !revving and rpm > 0
+            if (last.rpm == 0 && !last.revving)
+                fire_up_engine = true;
+            else need_update = true;
+
             last = truck_data;
-            need_update = true;
+        } else if (truck_data.revving != last.revving) {
+            last = truck_data;
         }
         current = truck_data;
         UNLOCK;
 
-        if (need_engine_toggle) {
-            last.revving ? fx::StartEngine() : fx::StopEngine();
-            need_engine_toggle = false;
+        if (fire_up_engine) {
+            fire_up_engine = false;
+            fx::StartEngine();
+        } else if (kill_engine) {
+            kill_engine = false;
+            fx::StopEngine();
         } else if (need_update) {
             need_update = false;
 
