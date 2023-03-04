@@ -45,8 +45,9 @@ void Poll() {
     bool need_update = false;
     bool fire_up_engine = false;
     bool kill_engine = false;
-    long currforce = 0, newforce;
+    bool update_engine_pull = false;
     bool di8failure = false;
+    long currforce = 0, newforce;
 #define SendForceCHK(x) di8failure = SendForce(x) != DI_OK
     SendForceCHK(currforce);
     log("Thread started polling.");
@@ -80,10 +81,13 @@ void Poll() {
             // For engine about to turn on, we get !revving and rpm > 0
             if (last.rpm == 0 && !last.revving)
                 fire_up_engine = true;
-            else need_update = true;
+            else if (truck_data.rpm > 20) need_update = true;
 
             last = truck_data;
         } else if (truck_data.revving != last.revving) {
+            last = truck_data;
+        } else if (truck_data.revving && truck_data.throttle != last.throttle) {
+            update_engine_pull = true;
             last = truck_data;
         }
         current = truck_data;
@@ -98,12 +102,23 @@ void Poll() {
         } else if (need_update) {
             need_update = false;
 
-            newforce = fx::RevToForce(last);
+            newforce = fx::EngineDrag(last, fx::RevToForce(last));
 
             // Only send the effect update if it grew something the
             // device will actually be able to reflect.
             if (newforce < (currforce - FORCEGRANULARITY) || newforce >(currforce + FORCEGRANULARITY)) {
                 currforce = newforce;
+                //log("Reflecting %.0frpm with %li force. TPS: %.2f, engine brake: %s",
+                //    last.rpm, newforce, last.throttle, last.engbrake ? "engaged" : "disengaged");
+                SendForceCHK(currforce);
+            }
+        } else if (update_engine_pull) {
+            update_engine_pull = false;
+            newforce = fx::EngineDrag(last, currforce);
+            if (newforce < (currforce - FORCEGRANULARITY) || newforce >(currforce + FORCEGRANULARITY)) {
+                currforce = newforce;
+                //log("Applying pull force with %li force. TPS: %.2f, engine brake: %s",
+                //    newforce, last.throttle, last.engbrake ? "engaged" : "disengaged");
                 SendForceCHK(currforce);
             }
         } else if (di8failure) {

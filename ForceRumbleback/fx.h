@@ -7,6 +7,7 @@
 namespace fx {
     long RevToForce(float, float);
     long RevToForce(truck_info_t);
+    long EngineDrag(truck_info_t, long);
 
     void StartEngine();
     void StopEngine();
