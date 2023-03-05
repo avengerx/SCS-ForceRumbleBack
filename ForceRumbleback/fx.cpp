@@ -36,17 +36,17 @@ namespace fx {
         if (state.rpm <= EngineIdleSpeed + 200)
             return (long)(line_eq(EngineIdleSpeed, EngineIdleSpeed + 200, EngineIdleForce, 600, state.rpm));
 
-        float half70prpm = (EngineIdleSpeed + 200) + (((0.7f * state.rpm_max) - (EngineIdleSpeed + 200)) / 2);
-        // Between idle speed and about half of 70%maxrpm, ramp down slightly, very smooth from 600 to 400 force
-        if (state.rpm <= half70prpm)
-            return (long)(line_eq(EngineIdleSpeed + 200, half70prpm, 600, 350, state.rpm));
+        float half85prpm = (EngineIdleSpeed + 200) + (((0.85f * state.rpm_max) - (EngineIdleSpeed + 200)) / 2);
+        // Between idle speed and about half of 85%maxrpm, ramp down slightly, very smooth from 600 to 400 force
+        if (state.rpm <= half85prpm)
+            return (long)(line_eq(EngineIdleSpeed + 200, half85prpm, 600, 350, state.rpm));
 
-        // Between about half of 70%maxrpm, until 70% max rpm ramp up from 400 to 2500 force (25% max force)
-        if (state.rpm <= (0.7 * state.rpm_max))
-            return (long)(line_eq(half70prpm, 0.7 * state.rpm_max, 350, 2500, state.rpm));
+        // Between about half of 85%maxrpm, until 85% max rpm ramp up from 400 to 2500 force (25% max force)
+        if (state.rpm <= (0.85 * state.rpm_max))
+            return (long)(line_eq(half85prpm, 0.85 * state.rpm_max, 350, 1000, state.rpm));
 
-        // Between 70% max rpm and max rpm, ramp real fast to 100% force
-        return (long)(line_eq(0.7 * state.rpm_max, state.rpm_max, 2500, 10000, state.rpm));
+        // Between 85% max rpm and max rpm, ramp real fast to 100% force
+        return (long)(line_eq(0.85 * state.rpm_max, state.rpm_max, 1000, 10000, state.rpm));
     }
 
     // Gets engine drag force based on current and expected RPM given current throttle position
@@ -70,7 +70,7 @@ namespace fx {
 
         float deviation = expected_rpm - state.rpm;
 
-        if (deviation < 0) deviation *= state.engbrake ? -1 : -0.1;
+        if (deviation < 0) deviation *= state.engbrake ? -1.0f : -0.1f;
 
         if (deviation < 20.0f) return ref_force;
 
