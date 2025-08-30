@@ -62,7 +62,7 @@ namespace fx {
         else {
             expected_rpm = line_eq(0.0f, 0.5f, EngineIdleSpeed, state.rpm_max, state.throttle);
             if (expected_rpm < EngineIdleSpeed || expected_rpm > (2 * state.rpm_max)) {
-                log("Weird expected RPM: throttle: %.2f, curr rpm: %.2f, expected rpm: %.2f",
+                log_warning("WARNING: Weird expected RPM: throttle: %.2f, curr rpm: %.2f, expected rpm: %.2f",
                     state.throttle, state.rpm, expected_rpm);
             }
             expected_rpm = max(EngineIdleSpeed, min(expected_rpm, state.rpm_max));

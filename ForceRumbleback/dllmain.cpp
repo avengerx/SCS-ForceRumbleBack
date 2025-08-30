@@ -3,9 +3,9 @@
 #include <stdio.h>
 #include <share.h>
 
-#include "log.h"
 #include "poller.h"
 #include "scsutil.h"
+#include "log.h"
 #include "rumble.h"
 #include "truck.h"
 
@@ -24,10 +24,10 @@ scs_log_t game_log = nullptr;
 SCSAPI_VOID telemetry_pause(const scs_event_t event, const void* const UNUSED(event_info), const scs_context_t UNUSED(context)) {
     truck_data.paused = (event == SCS_TELEMETRY_EVENT_paused);
     if (truck_data.paused) {
-        log("Realtime data resumed.");
+        log_message("Realtime data resumed.");
     }
     else {
-        log("Realtime data interrupted.");
+        log_message("Realtime data interrupted.");
     }
 }
 
@@ -40,6 +40,7 @@ SCSAPI_VOID telemetry_configuration(const scs_event_t event, const void* const e
     scs_value_dvector_t dpos;
     scs_value_fvector_t pos;
     scs_value_euler_t orient;
+    // This portion of the code will only dump to the log file if it's enabled, not to the game's console or own log file.
     log("Dumping all configuration values received for id: %s", info->id);
     for (const scs_named_value_t* current = info->attributes; current->name; ++current) {
 #define logType(replacer, type) log("#%u %s (" #type "): " replacer, current->index, current->name, current->value.value_ ## type.value); break
@@ -118,7 +119,7 @@ SCSAPI_VOID telemetry_configuration(const scs_event_t event, const void* const e
     truck_data.rpm_power = max_rpm; // the game doesn't really care with engine's rated max rpm
     truck_data_access.unlock();
 
-    log("Received new truck configuration: max rpm: %.2f, idle rpm: %.2f, torque rpm (estimated): %.2f, power rpm (estimated): %.2f", truck_data.rpm_max, truck_data.rpm_idle, truck_data.rpm_torque, truck_data.rpm_power);
+    log_message("Received new truck configuration: max rpm: %.2f, idle rpm: %.2f, torque rpm (estimated): %.2f, power rpm (estimated): %.2f", truck_data.rpm_max, truck_data.rpm_idle, truck_data.rpm_torque, truck_data.rpm_power);
 }
 
 /**
@@ -135,7 +136,7 @@ SCSAPI_RESULT scs_telemetry_init(const scs_u32_t version, const scs_telemetry_in
     const scs_sdk_init_params_v100_t *common = &version_params->common;
     game_log = common->log;
 
-    game_log(SCS_LOG_TYPE_message, "ForceRumbleback: Initializing");
+    log_message("Initializing");
 
     const char* game_name;
 
@@ -143,33 +144,33 @@ SCSAPI_RESULT scs_telemetry_init(const scs_u32_t version, const scs_telemetry_in
         game_name = "Euro Truck Simulator 2";
         const scs_u32_t MINIMAL_VERSION = MINETS2VER;
         if (common->game_version < MINIMAL_VERSION)
-            log("WARNING: Too old version of the game, some features might behave incorrectly");
+            log_warning("WARNING: Too old version of the game, some features might behave incorrectly");
 
         // Future versions are fine as long the major version is not changed.
         const scs_u32_t IMPLEMENTED_VERSION = SCS_TELEMETRY_EUT2_GAME_VERSION_CURRENT;
         if (SCS_GET_MAJOR_VERSION(common->game_version) > SCS_GET_MAJOR_VERSION(IMPLEMENTED_VERSION))
-            log("WARNING: This plugin was implemented for ETS2 version %u.%u. Current version is %u.%u. Some or all features might not work.",
+            log_warning("WARNING: This plugin was implemented for ETS2 version %u.%u. Current version is %u.%u. Some or all features might not work.",
                 SCS_GET_MAJOR_VERSION(IMPLEMENTED_VERSION), SCS_GET_MINOR_VERSION(IMPLEMENTED_VERSION),
                 SCS_GET_MAJOR_VERSION(common->game_version), SCS_GET_MINOR_VERSION(common->game_version));
     } else if (strcmp(common->game_id, SCS_GAME_ID_ATS) == 0) {
         game_name = "American Truck Simulator";
         const scs_u32_t MINIMAL_VERSION = MINATSVER;
         if (common->game_version < MINIMAL_VERSION)
-            log("WARNING: Too old version of the game, some features might behave incorrectly");
+            log_warning("WARNING: Too old version of the game, some features might behave incorrectly");
 
         // Future versions are fine as long the major version is not changed.
         const scs_u32_t IMPLEMENTED_VERSION = SCS_TELEMETRY_ATS_GAME_VERSION_CURRENT;
         if (SCS_GET_MAJOR_VERSION(common->game_version) > SCS_GET_MAJOR_VERSION(IMPLEMENTED_VERSION))
-            log("WARNING: This plugin was implemented for ATS version %u.%u. Current version is %u.%u. Some or all features might not work.",
+            log_warning("WARNING: This plugin was implemented for ATS version %u.%u. Current version is %u.%u. Some or all features might not work.",
                 SCS_GET_MAJOR_VERSION(IMPLEMENTED_VERSION), SCS_GET_MINOR_VERSION(IMPLEMENTED_VERSION),
                 SCS_GET_MAJOR_VERSION(common->game_version), SCS_GET_MINOR_VERSION(common->game_version));
     } else {
         game_name = "Unsupported game (!)";
-        log("WARNING: Unsupported game, aborting initialization.");
+        log_error("ERROR: Unsupported game, aborting initialization.");
         return SCS_RESULT_unsupported;
     }
 
-    log("Game session: %s (%s) v%u.%u", game_name, common->game_id,
+    log_message("Game session: %s (%s) v%u.%u", game_name, common->game_id,
         SCS_GET_MAJOR_VERSION(common->game_version), SCS_GET_MINOR_VERSION(common->game_version));
 
     // Register for events. Note that failure to register those basic events
@@ -184,8 +185,7 @@ SCSAPI_RESULT scs_telemetry_init(const scs_u32_t version, const scs_telemetry_in
     if (!events_registered) {
         // Registrations created by unsuccessfull initialization are
         // cleared automatically so we can simply exit.
-        log("Unable to register event callbacks");
-        game_log(SCS_LOG_TYPE_error, "ForceRumbleback: Unable to register event callbacks");
+        log_error("ERROR: Unable to register event callbacks");
         return SCS_RESULT_generic_error;
     }
 
@@ -208,8 +208,7 @@ SCSAPI_RESULT scs_telemetry_init(const scs_u32_t version, const scs_telemetry_in
     retstat == SCS_RESULT_generic_error ? "generic error" : "unknown error"
 
 #define HANDLE_NOK(what) if(retstat != SCS_RESULT_ok) { \
-        log("Unable to register function to fetch " what ": %s", SCS_EtoS); \
-        game_log(SCS_LOG_TYPE_error, "Unable to register function to fetch " what); \
+        log_error("ERROR: Unable to register function to fetch " what ": %s", SCS_EtoS); \
         return SCS_RESULT_generic_error; \
     }
 
@@ -231,17 +230,17 @@ SCSAPI_RESULT scs_telemetry_init(const scs_u32_t version, const scs_telemetry_in
 
     StartPolling();
 
-    game_log(SCS_LOG_TYPE_message, "ForceRumbleback: Initialization complete");
+    log_message("Initialization complete");
 
     return SCS_RESULT_ok;
 }
 
 SCSAPI_VOID scs_telemetry_shutdown() {
-    log("ForceRumbleBack: Shutting down.");
-    game_log = nullptr;
+    log_message("Shutting down.");
 
     StopPolling();
     ShutdownDirectInput();
+    game_log = nullptr;
 }
 
 BOOL APIENTRY DllMain( HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {

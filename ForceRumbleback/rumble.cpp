@@ -15,17 +15,17 @@ BOOL CALLBACK FindMainWindow(HWND, LPARAM) noexcept;
 
 HRESULT initDirectInput() {
     if (DI_OK != DirectInput8Create(GetModuleHandle(nullptr), DIRECTINPUT_VERSION, IID_IDirectInput8, (VOID**)&DirectInput, nullptr)) {
-        log(DIERRSTR "Unable to create Direct Input handle.");
+        log_error(DIERRSTR "Unable to create Direct Input handle.");
         return DIERR_GENERIC;
     }
 
     if (DI_OK != DirectInput->EnumDevices(DI8DEVCLASS_GAMECTRL, EnumFFDevices, nullptr, DIEDFL_ATTACHEDONLY | DIEDFL_FORCEFEEDBACK)) {
-        log(DIERRSTR "Unable to locate a Force Feedback device connected.");
+        log_error(DIERRSTR "Unable to locate a Force Feedback device connected.");
         return DIERR_NOTFOUND;
     }
 
     if (DIDev == nullptr) {
-        log(DIERRSTR "No Force Feedback compatible adapter was found in the system.");
+        log_error(DIERRSTR "No Force Feedback compatible adapter was found in the system.");
         return DIERR_NOTFOUND;
     }
 
@@ -34,15 +34,15 @@ HRESULT initDirectInput() {
 
     if (DI_OK != DIDev->GetDeviceInfo(device_info))
     {
-        log(DIERRSTR "Unable to fetch information about the force-feedback device.");
+        log_error(DIERRSTR "Unable to fetch information about the force-feedback device.");
         return DIERR_GENERIC;
     }
 
-    log(L"Found force feedback device: %s\n", device_info->tszProductName);
+    log_message(L"Found force feedback device: %s\n", device_info->tszProductName);
     delete device_info;
 
     if (DI_OK != DIDev->SetDataFormat(&c_dfDIJoystick)) {
-        log(DIERRSTR "Unable to set device's data format to 'Joystick'.");
+        log_error(DIERRSTR "Unable to set device's data format to 'Joystick'.");
         return DIERR_GENERIC;
     }
 
@@ -54,28 +54,28 @@ HRESULT initDirectInput() {
         EnumWindows(FindMainWindow, ownpid);
 
         if (win == nullptr) {
-            log("Couldn't get the handle of the active window. It is required to bind the Force Feedback device.");
+            log_error("Couldn't get the handle of the active window. It is required to bind the Force Feedback device.");
             return DIERR_GENERIC;
         }
     }
 
     if (DI_OK != DIDev->SetCooperativeLevel(win, DISCL_EXCLUSIVE | DISCL_FOREGROUND)) {
-        log(DIERRSTR "Unable to set required force-feedback cooperation level with the device using the terminal window.");
+        log_error(DIERRSTR "Unable to set required force-feedback cooperation level with the device using the terminal window.");
         return DIERR_GENERIC;
     }
 
     if (DI_OK != DIDev->EnumObjects(EnumAxes, (VOID*)&ActuatorCount, DIDFT_AXIS)) {
-        log(DIERRSTR "Unable to enumerate force feedback actuators in the device.");
+        log_error(DIERRSTR "Unable to enumerate force feedback actuators in the device.");
         return DIERR_GENERIC;
     }
 
     HRESULT acquired = DIDev->Acquire();
     if (acquired != DI_OK && acquired != S_FALSE) {
-        log("Unable to acquire device. Acquisition returned: 0x%08lx.");
+        log_error("Unable to acquire device. Acquisition returned: 0x%08lx.");
         return DIERR_NOTACQUIRED;
     }
 
-    log("Loaded device reports %u force feedback actuators present.", ActuatorCount);
+    log_message("Loaded device reports %u force feedback actuators present.", ActuatorCount);
     return DI_OK;
 }
 
@@ -95,19 +95,19 @@ HRESULT ShutdownDirectInput() {
 
     win = nullptr;
 
-    log("DirectInput shutdown: %s.", was_initialized ? "allocated resources released" : "no resources to release");
+    log_message("DirectInput shutdown: %s.", was_initialized ? "allocated resources released" : "no resources to release");
     return DI_OK;
 }
 
 HRESULT SendForce(long value) {
     HRESULT retstat;
     if (DIDev == nullptr) {
-        log("Initializing DirectInput on demand.");
+        log_message("Initializing DirectInput on demand.");
         retstat = initDirectInput();
         if (retstat == DI_OK)
-            log("Initialized DirectInput on demand.");
+            log_message("Initialized DirectInput on demand.");
         else {
-            log("Attempt to apply force of %l while device could not be initialized.");
+            log_error("Attempt to apply force of %li while device could not be initialized.", value);
             return retstat;
         }
     }
@@ -139,19 +139,19 @@ HRESULT SendForce(long value) {
 
         switch (retstat) {
         case DIERR_DEVICENOTREG:
-            log(ERRPFX "device not registered" ERRSUF);
+            log_error(ERRPFX "device not registered" ERRSUF);
             break;
         case DIERR_DEVICEFULL:
-            log(ERRPFX "device effects capacity is full" ERRSUF);
+            log_error(ERRPFX "device effects capacity is full" ERRSUF);
             break;
         case DIERR_INVALIDPARAM:
-            log(ERRPFX "invalid parameter" ERRSUF);
+            log_error(ERRPFX "invalid parameter" ERRSUF);
             break;
         case DIERR_NOTINITIALIZED:
-            log(ERRPFX "device not initialized" ERRSUF);
+            log_error(ERRPFX "device not initialized" ERRSUF);
             break;
         default:
-            log(ERRPFX "unknown error" ERRSUF);
+            log_error(ERRPFX "unknown error" ERRSUF);
         }
     }
 
