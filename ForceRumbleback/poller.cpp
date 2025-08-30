@@ -106,7 +106,7 @@ void Poll() {
 
             // Only send the effect update if it grew something the
             // device will actually be able to reflect.
-            if (newforce < (currforce - FORCEGRANULARITY) || newforce >(currforce + FORCEGRANULARITY)) {
+            if ((newforce == 0 && currforce != 0) || newforce < (currforce - FORCEGRANULARITY) || newforce >(currforce + FORCEGRANULARITY)) {
                 currforce = newforce;
                 //log("Reflecting %.0frpm with %li force. TPS: %.2f, engine brake: %s",
                 //    last.rpm, newforce, last.throttle, last.engbrake ? "engaged" : "disengaged");
@@ -115,7 +115,7 @@ void Poll() {
         } else if (update_engine_pull) {
             update_engine_pull = false;
             newforce = fx::EngineDrag(last, currforce);
-            if (newforce < (currforce - FORCEGRANULARITY) || newforce >(currforce + FORCEGRANULARITY)) {
+            if ((newforce == 0 && currforce != 0) || newforce < (currforce - FORCEGRANULARITY) || newforce >(currforce + FORCEGRANULARITY)) {
                 currforce = newforce;
                 //log("Applying pull force with %li force. TPS: %.2f, engine brake: %s",
                 //    newforce, last.throttle, last.engbrake ? "engaged" : "disengaged");
